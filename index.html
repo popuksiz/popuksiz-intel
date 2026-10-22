@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="POPUKSIZ // INTEL — фан-сайт по Arena Breakout: Infinite: Телецентр, спавны, плавильня, звуки груза торговца, патроны, FPS.">
+<title>Popuksiz Breakout Intel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&family=PT+Sans:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: sticky tactical top bar + tabbed sections; dossier panels on a near-black field, red as the only signal colour, gold reserved for mythic loot */
+:root{
+  --bg:#0b0909; --panel:#141011; --panel2:#1b1516; --line:#2e2426; --fg:#efe7e5; --mute:#a3948f;
+  --red:#e0232c; --red-d:#7e1218; --red-t:#ff5a61; --gold:#e8b04a; --ok:#58b46a;
+  --f-disp:"Russo One","Arial Black",Impact,sans-serif; --f-body:"PT Sans","Segoe UI",Roboto,Arial,sans-serif; --f-mono:"JetBrains Mono",Consolas,"Courier New",monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+img{max-width:100%}
+html{background:var(--bg)}
+body{background:var(--bg);color:var(--fg);font:16px/1.55 var(--f-body);margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+a{color:var(--red-t)}
+:focus-visible{outline:2px solid var(--red-t);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:linear-gradient(var(--bg),rgba(11,9,9,.96));border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:18px;padding-block:10px}
+.logo{font-family:var(--f-disp);font-size:22px;letter-spacing:.06em;text-decoration:none;color:var(--fg);white-space:nowrap}
+.logo b{color:var(--red)}
+.logo small{display:block;font:600 10px/1 var(--f-mono);letter-spacing:.25em;color:var(--mute);margin-top:3px}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;min-width:0;flex:1}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs a{flex:none;font:600 13px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--mute);text-decoration:none;padding:9px 11px;border:1px solid transparent}
+nav.tabs a:hover{color:var(--fg)}
+nav.tabs a[aria-current="page"]{color:var(--fg);border-color:var(--red-d);background:rgba(224,35,44,.12)}
+main{padding-block:28px 64px}
+section.view{display:grid;gap:22px}
+h1,h2,h3{font-family:var(--f-disp);font-weight:400;text-wrap:balance;margin:0;letter-spacing:.02em}
+h1{font-size:clamp(30px,6vw,56px);line-height:1.02}
+h2{font-size:clamp(22px,3.4vw,30px)}
+h3{font-size:18px}
+.eyebrow{font:600 12px/1 var(--f-mono);letter-spacing:.22em;text-transform:uppercase;color:var(--red-t)}
+.lead{color:var(--mute);max-width:68ch;margin:0}
+p{margin:0;max-width:72ch}
+.hero{display:grid;gap:16px;padding-block:18px 8px;border-bottom:1px solid var(--line)}
+.hero h1 span{color:var(--red)}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);padding:16px;display:grid;gap:8px;align-content:start;min-width:0}
+.card.link{text-decoration:none;color:inherit;transition:border-color .15s}
+.card.link:hover{border-color:var(--red)}
+.card .k{font:600 11px/1 var(--f-mono);letter-spacing:.18em;color:var(--mute);text-transform:uppercase}
+.tag{display:inline-block;font:600 11px/1.6 var(--f-mono);padding:0 7px;border:1px solid var(--line);color:var(--mute);letter-spacing:.05em}
+.tag.red{border-color:var(--red-d);color:var(--red-t)}
+.tag.gold{border-color:#6e5220;color:var(--gold)}
+.note{border-left:3px solid var(--red);background:var(--panel2);padding:12px 14px;color:var(--mute);font-size:14px}
+.cols2{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.tbl{overflow-x:auto;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font:600 11px/1.3 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);background:var(--panel2);position:sticky;top:0;cursor:default}
+th[data-sort]{cursor:pointer}
+th[data-sort]:hover{color:var(--fg)}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+tr:hover td{background:rgba(224,35,44,.05)}
+.cls{display:inline-block;min-width:26px;text-align:center;font:600 12px/22px var(--f-mono);color:#fff}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+input[type=text],input[type=search],select,textarea{background:var(--panel2);color:var(--fg);border:1px solid var(--line);font:15px var(--f-body);padding:9px 11px;min-width:0}
+textarea{width:100%;min-height:80px;resize:vertical}
+button,.btn{font:600 13px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;background:var(--red);color:#fff;border:0;padding:11px 14px;cursor:pointer}
+button.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.floor{display:grid;gap:10px}
+.callout{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:12px 14px;background:var(--panel);border:1px solid var(--line)}
+.callout .id{font:600 13px/1.6 var(--f-mono);color:var(--red-t)}
+.callout .nm{font-weight:700}
+.callout .ds{grid-column:2;color:var(--mute);font-size:14px}
+.danger{color:var(--red-t)}
+.sg{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
+.sgc{background:var(--panel);border:1px solid var(--line);padding:12px 14px;display:grid;gap:8px;align-content:start}
+.sgc.hit{border-color:var(--gold)}
+.sgc .n{font:600 12px/1 var(--f-mono);color:var(--mute);letter-spacing:.1em}
+.items{display:flex;flex-wrap:wrap;gap:5px}
+.it{font-size:13px;padding:2px 7px;background:var(--panel2);border:1px solid var(--line)}
+.it.my{border-color:#6e5220;color:var(--gold)}
+.it.match{outline:1px solid var(--red-t)}
+.steps{display:grid;gap:10px;counter-reset:s}
+.steps li{list-style:none;counter-increment:s;padding:10px 14px 10px 46px;position:relative;background:var(--panel);border:1px solid var(--line)}
+.steps li::before{content:counter(s);position:absolute;left:12px;top:10px;font:600 14px/22px var(--f-mono);color:var(--red-t)}
+ul.plain{margin:0;padding-left:18px;display:grid;gap:6px;max-width:72ch}
+.clip{background:var(--panel);border:1px solid var(--line);display:grid;gap:8px;padding:12px}
+.clip video{width:100%;max-height:300px;background:#000}
+.clip .meta{font-size:13px;color:var(--mute)}
+.status{font:13px var(--f-mono);color:var(--mute)}
+.ai-out{white-space:pre-wrap;background:var(--panel2);border:1px solid var(--line);padding:12px;font-size:14px;min-height:40px}
+footer{border-top:1px solid var(--line);padding-block:22px;color:var(--mute);font-size:13px}
+.kpis{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.kpi{border:1px solid var(--line);padding:12px;background:var(--panel)}
+.kpi b{display:block;font:400 26px/1.1 var(--f-disp);color:var(--red-t)}
+.kpi span{font-size:13px;color:var(--mute)}
+@media (max-width:640px){.bar{flex-wrap:wrap;gap:8px}.logo{font-size:19px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<header class="top">
+  <div class="wrap bar">
+    <a class="logo" href="#home">POPUKSIZ<b>//</b>INTEL<small>ARENA BREAKOUT: INFINITE</small></a>
+    <nav class="tabs" id="tabs" aria-label="Разделы">
+      <a href="#home">Главная</a>
+      <a href="#tv">Телецентр</a>
+      <a href="#spawns">Спавны</a>
+      <a href="#smelter">Плавильня</a>
+      <a href="#merchant">Торговец и звук</a>
+      <a href="#ammo">Патроны</a>
+      <a href="#weapons">Оружие</a>
+      <a href="#newbie">Новичкам</a>
+      <a href="#fps">FPS</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- HOME -->
+<section class="view" id="v-home">
+  <div class="hero">
+    <div class="eyebrow">Фан-сайт игрока popuksiz · сезон 7 «Утопия»</div>
+    <h1>Разведка перед рейдом.<br><span>Звук, лут, выходы.</span></h1>
+    <p class="lead">Справочник по Arena Breakout: Infinite: Телецентр по позициям, плавильня и рецепты, торговец в рейде и определитель красных предметов по звуку груза, таблица патронов и настройка FPS.</p>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><b>38</b><span>звуковых групп груза торговца</span></div>
+    <div class="kpi"><b>32</b><span>мифических (красных) предмета по размерам</span></div>
+    <div class="kpi"><b>50</b><span>патронов в таблице пробития</span></div>
+    <div class="kpi"><b>3</b><span>выхода с Телецентра</span></div>
+  </div>
+  <div class="grid">
+    <a class="card link" href="#merchant"><span class="k">Инструмент</span><h3>Красное по звуку</h3><p class="lead">Услышали звук загадочного груза — найдите группу и посмотрите, есть ли в ней красный предмет. Фильтр по размеру и поиск по названию.</p></a>
+    <a class="card link" href="#tv"><span class="k">Карта</span><h3>Телецентр</h3><p class="lead">Позиции по этажам, сейфы, выходы и откуда приходят игроки.</p></a>
+    <a class="card link" href="#smelter"><span class="k">Механика</span><h3>Плавильня</h3><p class="lead">Три предмета на входе, пороги ценности и известные рецепты.</p></a>
+    <a class="card link" href="#ammo"><span class="k">Таблица</span><h3>Патроны</h3><p class="lead">Пробитие, класс брони и урон. Фильтр по калибру.</p></a>
+    <a class="card link" href="#fps"><span class="k">Гайд</span><h3>Больше FPS</h3><p class="lead">Настройки игры, Windows и видеокарты.</p></a>
+    <a class="card link" href="#newbie"><span class="k">Гайд</span><h3>С чего начать</h3><p class="lead">Базовые правила выживания в рейде.</p></a>
+  </div>
+  <div class="note">Неофициальный фан-сайт. Не связан с MoreFun Studios и Tencent. Игра часто обновляется: данные собраны из открытых гайдов на октябрь 2026 г. Источники указаны внизу каждого раздела.</div>
+</section>
+
+<!-- TV STATION -->
+<section class="view" id="v-tv" hidden>
+  <div class="hero">
+    <div class="eyebrow">Карта · Телецентр (TV Station)</div>
+    <h2>Телецентр Камона</h2>
+    <p class="lead">Средняя закрытая карта на два этажа, бой на короткой дистанции. Бывший командный центр, теперь в Тёмной зоне. Ниже — позиции так, как их называют в коммьюнити, с тем, что там лежит и чем опасно.</p>
+  </div>
+  <div class="controls">
+    <input type="search" id="tvq" placeholder="Найти позицию: сейф, офис, выход…" aria-label="Поиск по позициям">
+    <select id="tvfloor" aria-label="Этаж"><option value="all">Оба этажа</option><option value="1F">1 этаж</option><option value="2F">2 этаж</option></select>
+  </div>
+  <div class="cols2">
+    <div class="floor"><h3>1 этаж</h3><div id="tv1" class="floor"></div></div>
+    <div class="floor"><h3>2 этаж</h3><div id="tv2" class="floor"></div></div>
+  </div>
+  <h3>Выходы</h3>
+  <div class="tbl"><table><thead><tr><th>Выход</th><th>Где</th><th>Условие</th><th>Риск</th></tr></thead><tbody id="tvex"></tbody></table></div>
+  <h3>Точки появления игроков</h3>
+  <p class="lead">Игроки появляются на 1 этаже: Склад, Фотозона, Офисная зона, Логистика, Вестибюль и вентиляционная лестница. Из Склада ближе всего Временный медпункт и Общий офис на 2 этаже; из Логистики открыты фланги — не задерживайтесь.</p>
+  <div class="note">Центральный пульт — самая горячая точка: два открытых сейфа, запертый сейф, документы и оружейные ящики. Если нажать средний рубильник, через 30 секунд входы блокируются и появляются дополнительные боты. Идите туда только с полным снаряжением.</div>
+  <p class="status">Источники: arenabreakout-infinite.com (гайд по Телецентру и красным предметам), buffbuff.com.</p>
+</section>
+
+<!-- SPAWNS -->
+<section class="view" id="v-spawns" hidden>
+  <div class="hero">
+    <div class="eyebrow">Спавны · Телецентр</div>
+    <h2>Где появляются ценные предметы и враги</h2>
+    <p class="lead">Точки, где игроки сообщают о красных и золотых предметах. Спавн случайный: это места с повышенным шансом, а не гарантия.</p>
+  </div>
+  <div class="tbl"><table><thead><tr><th>Зона</th><th>Место</th><th>Что может быть</th><th>Ключ</th></tr></thead><tbody id="sptbl"></tbody></table></div>
+  <h3>Сейфы</h3>
+  <div class="grid" id="safes"></div>
+  <h3>Враги</h3>
+  <div class="grid">
+    <div class="card"><span class="k">Боты</span><p>Хорошо экипированные боты держат Центральный пульт. После нажатия среднего рубильника приходит дополнительная волна.</p></div>
+    <div class="card"><span class="k">Боссы</span><p>В гайдах упоминаются Курт и Бернард с небольшим шансом выпадения красных и золотых предметов. Точки их появления в источниках не указаны.</p></div>
+    <div class="card"><span class="k">Игроки</span><p>Опаснее всего коридоры у Центрального пульта, Логистика с открытыми флангами и выход через лифт: двери закрываются за 5 секунд до эвакуации.</p></div>
+  </div>
+  <p class="status">Источник: arenabreakout-infinite.com — TV Station Red Items Guide. Многие точки помечены там как «по сообщениям игроков».</p>
+</section>
+
+<!-- SMELTER -->
+<section class="view" id="v-smelter" hidden>
+  <div class="hero">
+    <div class="eyebrow">Механика · Плавильня (Smelter)</div>
+    <h2>Три предмета на вход — один ценнее на выход</h2>
+    <p class="lead">Плавильни стоят на всех картах в режимах «Изоляция», «Запретная зона» и «Враждебная зона». Положите три предмета категории «разное» и получите предмет выше рангом. До трёх переплавок за рейд.</p>
+  </div>
+  <h3>Пороги ценности</h3>
+  <div class="tbl"><table><thead><tr><th>Суммарная стоимость трёх предметов</th><th>Что можно получить</th></tr></thead><tbody>
+    <tr><td class="num">до 45 000 коенов</td><td>Часто дешёвый фиолетовый предмет — в минус</td></tr>
+    <tr><td class="num">от 45 000</td><td>Рекомендуемый минимум для прибыли</td></tr>
+    <tr><td class="num">от 200 000</td><td>Шанс на один красный предмет</td></tr>
+    <tr><td class="num">от 300 000</td><td>Шанс на один из двух красных предметов</td></tr>
+  </tbody></table></div>
+  <h3>Рецепты</h3>
+  <div class="tbl"><table><thead><tr><th>Вход</th><th>Результат</th><th>Когда</th></tr></thead><tbody>
+    <tr><td>Три одинаковых фиолетовых предмета, вместе от 45 000</td><td>Шанс на коллекционную «Сияющую розу» (Luminous Rose)</td><td>Сезон 6</td></tr>
+    <tr><td>Любые три золотых предмета</td><td>Шанс на один из трёх красных предметов</td><td>Постоянно</td></tr>
+    <tr><td>Три одинаковых золотых предмета</td><td>Шанс на один из пяти красных предметов</td><td>Постоянно</td></tr>
+    <tr><td>Мыло + золотые часы + золотой браслет</td><td><span class="tag gold">Pure Gold Soap</span> — около 300 000</td><td>27 авг – 13 сен (событие)</td></tr>
+    <tr><td>Рецепт спрятан в официальном видео</td><td><span class="tag gold">Gold Lute</span> — коллекционный</td><td>С 10 июля (событие)</td></tr>
+    <tr><td>Ограниченный рецепт</td><td><span class="tag gold">Gold-Plated Video Camera</span> — для витрины</td><td>Событие</td></tr>
+  </tbody></table></div>
+  <h3>Как играть плавильню</h3>
+  <ol class="steps">
+    <li>Сначала проверьте, можно ли собрать текущий ограниченный рецепт: он всегда в плюс.</li>
+    <li>Если нельзя — плавьте три предмета на 45 000+; одинаковые фиолетовые дают шанс на розу.</li>
+    <li>На красный: три одинаковых золотых, затем любые три золотых, затем набор на 300 000 (минимум 200 000).</li>
+    <li>Ранние дешёвые переплавки за рейд дают материалы для дорогой переплавки в конце.</li>
+  </ol>
+  <div class="note">Пороги — результат тестов игроков, а не официальные данные. Ограниченные рецепты меняются каждое событие: проверяйте официальные анонсы игры.</div>
+  <p class="status">Источники: abibuilder.com (Smelter guide), mmoexp.com (Pure Gold Soap), официальный X @ArenaBreakoutPC.</p>
+</section>
+
+<!-- MERCHANT + SOUND -->
+<section class="view" id="v-merchant" hidden>
+  <div class="hero">
+    <div class="eyebrow">Сезон 7 · Полевой торговец (Field Merchant)</div>
+    <h2>Слушайте груз — в нём может быть красное</h2>
+    <p class="lead">В рейде у торговца можно продать добычу и купить «загадочный груз». У каждого предмета в грузе свой звук. Разработчики сами советуют прислушиваться: по звуку можно понять, есть ли внутри красный предмет.</p>
+  </div>
+  <div class="grid">
+    <div class="card"><span class="k">Обычный груз</span><p class="num">40 000 · 70 000 · 250 000</p><p class="lead">Стабильная отдача.</p></div>
+    <div class="card"><span class="k">Необычный груз</span><p class="num">210 000 — 450 000</p><p class="lead">Разброс выше.</p></div>
+    <div class="card"><span class="k">Редкий груз</span><p class="num">470 000 · 550 000</p><p class="lead">Большой плюс или большой минус.</p></div>
+    <div class="card"><span class="k">Доверие</span><p>Торговля поднимает расположение торговца, и он начинает давать разведданные о бое и предметах.</p></div>
+  </div>
+
+  <h3>Определитель по звуку</h3>
+  <p class="lead">Каждая звуковая группа объединяет предметы с одинаковым звуком. Найдите предмет или выберите «только с красными», чтобы увидеть, какие звуки стоит ловить. Золотым выделены мифические (красные) предметы.</p>
+  <div class="controls">
+    <input type="search" id="sq" placeholder="Предмет: Antique Teapot, Lute…" aria-label="Поиск предмета">
+    <select id="ssize" aria-label="Размер"><option value="">Любой размер красного</option><option>1x2</option><option>2x1</option><option>2x2</option><option>2x3</option><option>3x2</option></select>
+    <label class="status"><input type="checkbox" id="sred"> только группы с красными</label>
+  </div>
+  <div class="sg" id="sgroups"></div>
+
+  <h3>Как пользоваться определителем</h3>
+  <ol class="steps">
+    <li>Подойдите к торговцу и послушайте звук загадочного груза. Удобно записать его на телефон.</li>
+    <li>Сравните звук с известными: материал предмета (металл, стекло, бумага, электроника) обычно слышно сразу.</li>
+    <li>Найдите группу выше. Если в ней есть золотые (красные) предметы — груз стоит купить.</li>
+  </ol>
+  <p class="status">Источники: abibuilder.com/merchant (звуковые группы и размеры), timesaver.gg (Field Merchant), официальный X @ArenaBreakoutPC.</p>
+</section>
+
+<!-- AMMO -->
+<section class="view" id="v-ammo" hidden>
+  <div class="hero">
+    <div class="eyebrow">Баллистика · патч 1.0.0.142.19</div>
+    <h2>Патроны: пробитие и урон</h2>
+    <p class="lead">Класс — уровень брони, который патрон уверенно пробивает. Нажмите на заголовок столбца, чтобы отсортировать.</p>
+  </div>
+  <div class="controls">
+    <select id="acal" aria-label="Калибр"><option value="">Все калибры</option></select>
+    <select id="acls" aria-label="Класс"><option value="">Любой класс</option><option value="7">7</option><option value="6">6+</option><option value="5">5+</option><option value="4">4+</option><option value="3">3+</option></select>
+  </div>
+  <div class="tbl"><table><thead><tr><th data-sort="name">Патрон</th><th data-sort="cal">Калибр</th><th data-sort="cls">Класс</th><th data-sort="pen">Пробитие</th><th data-sort="dmg">Урон</th></tr></thead><tbody id="atbl"></tbody></table></div>
+  <p class="status">Источник: arenabreakout-infinite.com/ammo-chart (50 из 70 патронов, цены для патча не указаны).</p>
+</section>
+
+<!-- WEAPONS -->
+<section class="view" id="v-weapons" hidden>
+  <div class="hero">
+    <div class="eyebrow">Оружие · выбор калибра</div>
+    <h2>Оружие выбирают по патрону</h2>
+    <p class="lead">Сборки меняются каждый патч, а баллистика патронов — основа выбора. Ниже — лучший патрон каждого калибра и против какой брони он работает.</p>
+  </div>
+  <div class="grid" id="calbest"></div>
+  <ul class="plain">
+    <li>Против брони 5–6 класса берите калибры с патронами класса 5+: 7.62x54, 7.62x51, .338, 5.45 БС, 5.56 M995, 9x39 7Н12.</li>
+    <li>Дробовик с пулей GT Slug или RIP наносит огромный урон по незащищённым частям, но не пробивает хорошую броню.</li>
+    <li>Пистолеты-пулемёты 9x19 с 7Н31 и 5.7x28 с SS198 подходят для коротких коридоров Телецентра.</li>
+    <li>Отдача и эргономика зависят от модулей: собирайте сначала прицел, рукоять и дульное устройство.</li>
+  </ul>
+</section>
+
+<!-- NEWBIE -->
+<section class="view" id="v-newbie" hidden>
+  <div class="hero">
+    <div class="eyebrow">Гайд · первые рейды</div>
+    <h2>Как не терять снаряжение</h2>
+  </div>
+  <ol class="steps">
+    <li><b>Учите одну карту.</b> Выходы, точки появления и пару безопасных маршрутов. Телецентр маленький и удобен для этого.</li>
+    <li><b>Защищённый контейнер.</b> Самое ценное кладите туда сразу: при смерти он сохраняется.</li>
+    <li><b>Страховка.</b> Страхуйте оружие и броню — часть вернётся, если их не вынесут.</li>
+    <li><b>Звук — ваш радар.</b> Играйте в наушниках. Шаги, двери, перезарядка выдают игроков.</li>
+    <li><b>Патроны важнее ствола.</b> Дешёвое оружие с хорошим патроном сильнее дорогого с плохим.</li>
+    <li><b>Лечение и обезболивающие.</b> Берите бинты, жгут, аптечку и обезболивающее при переломах.</li>
+    <li><b>Не жадничайте.</b> Рюкзак полон — идите к выходу. Мёртвый игрок выносит ноль.</li>
+    <li><b>Плавильня и торговец.</b> Переплавляйте мелочь и слушайте груз, но держите запас коенов на снаряжение.</li>
+  </ol>
+</section>
+
+<!-- FPS -->
+<section class="view" id="v-fps" hidden>
+  <div class="hero">
+    <div class="eyebrow">Производительность</div>
+    <h2>Больше кадров, меньше просадок</h2>
+  </div>
+  <div class="tbl"><table><thead><tr><th>Настройка в игре</th><th>Значение</th><th>Зачем</th></tr></thead><tbody>
+    <tr><td>Масштабирование</td><td>DLSS (RTX) или FSR (остальные), «Качество»</td><td>«Баланс» — если нужно 120+ кадров</td></tr>
+    <tr><td>Генерация кадров</td><td>Вкл. только RTX 40/50 и с Reflex</td><td>Иначе растёт задержка</td></tr>
+    <tr><td>Дальность прорисовки</td><td>Средняя–высокая</td><td>Нагружает процессор и видеокарту</td></tr>
+    <tr><td>Сглаживание</td><td>Высокое</td><td>Меньше мерцания травы</td></tr>
+    <tr><td>Постобработка</td><td>Низкая–средняя</td><td>Пользы в бою почти нет</td></tr>
+    <tr><td>Тени</td><td>Низкие</td><td>Убирает просадки в помещениях</td></tr>
+    <tr><td>Текстуры</td><td>Низкие при 4–6 ГБ видеопамяти, средние–высокие от 8 ГБ</td><td>Ограничено видеопамятью</td></tr>
+    <tr><td>Эффекты, растительность, шейдеры, свет</td><td>Низкие</td><td>Растительность на низком — лучше видно врагов</td></tr>
+  </tbody></table></div>
+  <div class="cols2">
+    <div class="card"><h3>Windows</h3><ul class="plain">
+      <li>Включите «Игровой режим», схема питания — «Высокая производительность».</li>
+      <li>Проверьте планирование GPU (HAGS) вкл. и выкл., оставьте стабильнее.</li>
+      <li>После больших патчей очищайте кэш шейдеров DirectX и перезагружайтесь.</li>
+      <li>Ограничьте FPS на 2–3 ниже частоты монитора (142 при 144 Гц), включите G-SYNC/FreeSync.</li>
+      <li>Закройте оверлеи Discord, Steam и запись видео, подключите интернет кабелем.</li>
+    </ul></div>
+    <div class="card"><h3>NVIDIA и AMD</h3><ul class="plain">
+      <li>NVIDIA: свежий Game Ready драйвер, Reflex вкл., DLSS «Качество». Обновляйте DLSS через NVIDIA App, не меняя DLL вручную.</li>
+      <li>AMD: свежий Adrenalin, FSR «Качество» или «Баланс», сброс кэша шейдеров после патчей.</li>
+    </ul></div>
+  </div>
+  <p class="status">Источник: hone.gg — Best Arena Breakout: Infinite Settings.</p>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap" style="display:grid;gap:8px">
+    <div><b style="color:var(--fg)">Безопасность сайта.</b> Статический сайт: нет базы данных, форм входа и паролей — взламывать нечего. Страница не загружает чужие скрипты, кроме шрифтов Google.</div>
+    <div>POPUKSIZ // INTEL — неофициальный фан-сайт. Arena Breakout: Infinite — товарный знак правообладателей.</div>
+  </div>
+</footer>
+
+<script>
+const $=s=>document.querySelector(s);
+const el=(t,c,txt)=>{const e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e};
+
+/* ---------- routing ---------- */
+const VIEWS=["home","tv","spawns","smelter","merchant","ammo","weapons","newbie","fps"];
+function route(){
+  let h=(location.hash||"#home").slice(1); if(!VIEWS.includes(h)) h="home";
+  VIEWS.forEach(v=>{$("#v-"+v).hidden=(v!==h)});
+  document.querySelectorAll("#tabs a").forEach(a=>a.setAttribute("aria-current",a.getAttribute("href")==="#"+h?"page":"false"));
+  try{localStorage.setItem("pk_tab",h)}catch(e){}
+  window.scrollTo(0,0);
+}
+window.addEventListener("hashchange",route);
+if(!location.hash){try{const t=localStorage.getItem("pk_tab");if(t&&VIEWS.includes(t))location.hash=t}catch(e){}}
+
+/* ---------- TV station ---------- */
+const TV=[
+ {f:"1F",id:"A1",n:"Вестибюль (Lobby)",d:"Точка появления. На юге — главный выход, рубильник у стойки ресепшн."},
+ {f:"1F",id:"A2",n:"Склад (Warehouse)",d:"Точка появления. Лестница склада ведёт на 2 этаж к Временному медпункту и Общему офису."},
+ {f:"1F",id:"A3",n:"Фотозона (Photography Area)",d:"Точка появления. Открытый сейф под столом у рубильника Центрального пульта."},
+ {f:"1F",id:"A4",n:"Центральный пульт (Central Control)",d:"Два открытых сейфа, запертый сейф, документы, оружейные ящики, хорошо вооружённые боты. Средний рубильник: блокировка через 30 с и новая волна ботов.",danger:1},
+ {f:"1F",id:"A5",n:"Офисная зона (Office Area)",d:"Точка появления. Короткий путь к Центральному пульту."},
+ {f:"1F",id:"A6",n:"Логистика (Logistics)",d:"Точка появления. Шифрованный сейф, витрины и коробки с дорогим лутом. Открытые фланги.",danger:1},
+ {f:"1F",id:"A7",n:"Зона разгрузки (Unloading Bay)",d:"Запад 1 этажа, рядом выход «Погрузочная площадка»."},
+ {f:"1F",id:"A8",n:"Временный медпункт (Temporary Treatment)",d:"Медицина; близко к спавну Склада."},
+ {f:"1F",id:"A9",n:"Вентиляционная лестница (север)",d:"Точка появления. Рубильник выхода «Погрузочная площадка» — далеко от самого выхода, частые засады.",danger:1},
+ {f:"1F",id:"A10",n:"Аппаратная (Broadcast Control Room)",d:"Открытый сейф на столе, полки и стеллажи: чайник, золотой лев."},
+ {f:"1F",id:"A11",n:"Кафе (Café)",d:"Под диваном и за стойкой — антикварный чайник, электроника, украшения."},
+ {f:"2F",id:"B1",n:"Студия съёмки и монтажа (Live Action & Editing)",d:"Стеллажи с аппаратурой за мониторами, сцена — электроника, украшения, иногда красное."},
+ {f:"2F",id:"B2",n:"Общий офис (General Office)",d:"Сейф под столом, шифрованный и запертый сейфы, малый переговорный стол. Несколько выходов — удобно уйти."},
+ {f:"2F",id:"B3",n:"Кабинет директора (Director's Office)",d:"Сейф под большим столом, шифрованный и запертый сейфы, чайник за столом. Один вход: легко держать, трудно уйти.",danger:1},
+ {f:"2F",id:"B4",n:"Архив (Archive Room)",d:"Секретные документы в стопках бумаг, шкафах и коробках."},
+ {f:"2F",id:"B5",n:"Производственный отдел (Production)",d:"Расходники и припасы."},
+ {f:"2F",id:"B6",n:"Зона «Белый волк» (White Wolf Area)",d:"Отдельная зона 2 этажа."},
+ {f:"2F",id:"B7",n:"Коридор запретной зоны (Forbidden Zone Corridor)",d:"Шифрованный сейф."},
+ {f:"2F",id:"B8",n:"Лифт",d:"Выход: вызвать и ждать, двери закрываются за 5 с до эвакуации. Простреливается с востока и запада.",danger:1},
+];
+const TVEX=[["Главный вход","Юг Вестибюля, 1 этаж","Рубильник у ресепшн, без ограничений","Низкий: много укрытий, берегитесь гранат"],
+ ["Лифт","2 этаж","Активировать и ждать лифт","Высокий: фланги с востока и запада"],
+ ["Погрузочная площадка","У Зоны разгрузки, запад 1 этажа","Рубильник на северной вентиляционной лестнице, открыт весь рейд","Средний: засады у рубильника"]];
+function renderTV(){
+  const q=$("#tvq").value.trim().toLowerCase(), fl=$("#tvfloor").value;
+  ["#tv1","#tv2"].forEach(s=>$(s).replaceChildren());
+  TV.filter(c=>(fl==="all"||c.f===fl)&&(!q||(c.n+" "+c.d).toLowerCase().includes(q))).forEach(c=>{
+    const b=el("div","callout"); b.append(el("span","id",c.id)); const n=el("span","nm"+(c.danger?" danger":""),c.n); b.append(n); b.append(el("span","ds",c.d));
+    $(c.f==="1F"?"#tv1":"#tv2").append(b);
+  });
+  const tb=$("#tvex"); tb.replaceChildren(); TVEX.forEach(r=>{const tr=el("tr");r.forEach(x=>tr.append(el("td",null,x)));tb.append(tr)});
+}
+$("#tvq").addEventListener("input",renderTV); $("#tvfloor").addEventListener("change",renderTV);
+
+/* ---------- spawns ---------- */
+const SP=[["Центральный пульт","2 открытых сейфа","Ценности, красное среднего уровня","—"],
+ ["Центральный пульт","Запертая кладовая","Электроника, золото","Equipment Key"],
+ ["Центральный пульт","Столы и шкафы рядом","Золотой лев, секретные документы","—"],
+ ["Центральный пульт","Стол переговорной (Planning Area 2)","Иногда ожерелье с камнями","—"],
+ ["Аппаратная","Стол с открытым сейфом","Редко красный коллекционный","—"],
+ ["Аппаратная","Верхние шкафы и стойки","Антикварный чайник, золотой лев","—"],
+ ["Юго-восток","Кабинет директора (2 этаж)","Чайник за столом или под стульями; документы в шкафах","—"],
+ ["Юго-восток","Архив","Секретные документы","—"],
+ ["Юго-восток","Кафе","Чайник под диваном и за стойкой, электроника, украшения","—"],
+ ["Северо-восток","Закулисье, витрины","Золотой лев, редкий декор","—"],
+ ["Северо-восток","Коридор у выхода к декорациям","Чайник или ваза на полу","—"],
+ ["Северо-запад","Монтажная: стойки за мониторами, сцена","Электроника, украшения, красное","—"],
+ ["Юго-запад","Склад логистики: витрины, коробки","Случайный дорогой лут","—"],
+ ["Юго-запад","Ящики по пути","Золотой лев или чайник","—"],
+ ["Юго-запад","Общий офис: малый переговорный стол","Красные предметы","—"],
+ ["Юго-запад","Общий офис: под столами","Секретные документы","—"]];
+const SAFES=[["Открытые (20 с)","Фотозона — под столом у рубильника; Центральный пульт — два; Общий офис — один; Кабинет директора — один"],
+ ["Шифрованные","Логистика, Коридор запретной зоны, Общий офис, Кабинет директора"],
+ ["Запертые","Центральный пульт, Общий офис, Кабинет директора"]];
+function renderSpawns(){
+  const tb=$("#sptbl"); SP.forEach(r=>{const tr=el("tr");r.forEach((x,i)=>{const td=el("td",null,x);if(i===3&&x!=="—")td.className="danger";tr.append(td)});tb.append(tr)});
+  SAFES.forEach(([k,v])=>{const c=el("div","card");c.append(el("span","k",k));c.append(el("p",null,v));$("#safes").append(c)});
+}
+
+/* ---------- sound groups ---------- */
+const SG=[
+ [1,"Film Stock, Oil, Kerosene Lamp"],[2,"Fuel Tank, High Energy Fuel, Oil Drum, Propane Tank, Portable Fuel Canister"],
+ [3,"Large-Caliber Artillery Gunpowder Pack, Nitrocellulose, Paracord, Camping Tarp"],[4,"Impact-resistant Hard Rubber"],[5,"Bag of Cement"],
+ [6,"\"Destiny\" Gold Clay Tablet, Titanium Alloy Plate, Car Battery"],[7,"Rubber Pad"],[8,"Record Player, Vintage Typewriter, Acoustic Panel, Wood Board"],
+ [9,"Sound-Muffling Cotton, Hearing Aid, Bios., Rangefinder Binoculars",7],[10,"TI Module, Target Positioning Module, Palladium Wire, UPS Unit",29],
+ [11,"Power Cable"],[12,"Graphics Card, PSU, SSD"],[13,"Working LCD, Broken LCD"],[14,"Double-Neck Lute, Studio Monitor"],[15,"Battery, D-size Battery"],
+ [16,"Solar Panel"],[17,"Battery-Powered Positive Electrode Module, Hydraulic Expander, Arched Corrugated Steel Plate, Portable Jack",5],
+ [18,"Skyhook Synchronized Array Mirror, Quantum 2000 Toy Robot, Hefra Egg, Lyre",25],[19,"Toolbox"],[20,"Blowtorch"],[21,"Photo Frame"],
+ [22,"Voice of Civilization Gold Record, EEG, Gilded Cage Music Box, Phaethon's Clock",25],[23,"Bag of Fertilizer"],
+ [24,"Deluxe Tea Set, Pheromone Test Kit, Blocker Injector"],[25,"Lute"],[26,"Gold-rimmed Glasses, Syringe"],[27,"Medical Sponge"],
+ [28,"Gold Lion Statue, Gold Cheetah Statue"],[29,"Gold Bracelet, Commemorative Coin"],[30,"Vase, Northern Stars Amber Drink, Mutant Heart Sample"],
+ [31,"Desk Clock"],[32,"Antique Teapot"],[33,"Gem Necklace, Star of Kamona Pendant, Diamond Ring, Brooch",2],[34,"Stamp Album"],
+ [35,"Dried Flower Bookmark, Mutant Evolution Sketch, Stamp, Document"],[36,"Majestic Sculpture, Gold Snake, Optoelectronic Hyperspace Model, Gold Cube",5],
+ [37,"Folder, Bundle of Rice Paper, Hardcover"],[38,"Military Radio, Classic Radio"]];
+const MYTH={"1x2":["Skyhook Synchronized Array Mirror"],"2x1":["TI Module"],
+ "2x2":["Northern Stars Amber Drink","Phaethon's Clock","EEG","MRID Clamshell Laptop","Prototype Calculation Module","Real Matrix","Target Positioning Module","Gem Necklace","Gold Snake","Antique Teapot","Star of Kamona Pendant","Vase","Optoelectronic Hyperspace Model","Peacock Fan","Voice of Civilization Gold Record","Heavenly Sphere","Lyre","Hefra Egg"],
+ "2x3":["Ancient Golden Mask Replica","Capsule TV","Gilded Cage Music Box","Majestic Sculpture","Double-Neck Lute","Amber Heart of Heaven","Quantum 2000 Toy Robot"],
+ "3x2":["Dawn","Aerospace Navigator","Gold Lion Statue","\"Destiny\" Gold Clay Tablet","Three-Axis Gyro Controller Prototype"]};
+const MYSIZE={}; Object.entries(MYTH).forEach(([s,l])=>l.forEach(n=>MYSIZE[n]=s));
+const GROUPS=SG.map(([n,s,more])=>{const items=s.split(/,\s*(?=[A-Z"])/);return {n,items,more:more||0,myth:items.filter(i=>MYSIZE[i])}});
+function renderSG(){
+  const q=$("#sq").value.trim().toLowerCase(), sz=$("#ssize").value, red=$("#sred").checked, box=$("#sgroups"); box.replaceChildren();
+  let shown=0;
+  GROUPS.forEach(g=>{
+    if(red&&!g.myth.length) return;
+    if(sz&&!g.myth.some(i=>MYSIZE[i]===sz)) return;
+    const hit=q&&g.items.some(i=>i.toLowerCase().includes(q));
+    if(q&&!hit) return;
+    shown++;
+    const c=el("div","sgc"+(g.myth.length?" hit":"")); const head=el("div","controls");
+    head.append(el("span","n","ЗВУК #"+g.n)); if(g.myth.length) head.append(el("span","tag gold","красное: "+g.myth.length));
+    c.append(head); const it=el("div","items");
+    g.items.forEach(i=>{const s=el("span","it"+(MYSIZE[i]?" my":"")+(q&&i.toLowerCase().includes(q)?" match":""),i+(MYSIZE[i]?" · "+MYSIZE[i]:""));it.append(s)});
+    if(g.more) it.append(el("span","it","+ ещё "+g.more));
+    c.append(it); box.append(c);
+  });
+  if(!shown) box.append(el("p","lead","Ничего не найдено. Попробуйте английское название предмета, как в игре."));
+}
+["#sq","#ssize","#sred"].forEach(s=>$(s).addEventListener("input",renderSG));
+
+/* ---------- ammo ---------- */
+const AM=`7.62x54mm 7N37|71|7|64;7.62x51mm M61|68|6|50;.338 AP|64|6|90;7.62x54mm SNB|63|6|67;.338 FMJ|54|5|94;7.62x39mm AP|54|5|45;7.62x54mm 7BT1|54|5|72;5.7x28mm SS198|53|5|43;5.8x42mm DVC12|53|5|44;7.62x51mm M62|53|5|56;5.45x39mm BS|52|5|40;5.56x45mm M995|52|5|41;9x39mm 7N12|50|5|50;9x39mm 7N9|47|4|56;7.62x39mm BP|45|4|55;5.8x42mm DVP88|44|4|47;.338 UPZ|42|4|110;.44 JSP|42|4|67;7.62x51mm M80|42|4|63;7.62x54mm LPS|42|4|75;5.45x39mm BP|41|4|45;5.45x39mm PP|41|3|44;5.7x28mm SS190|41|4|47;9x39mm SP6|41|4|53;5.56x45mm M855A1|40|4|47;9x19mm 7N31|40|4|44;.44 SJHP|35|3|76;12x70mm Armor-Piercing Slug|35|3|163;5.56x45mm M855|34|3|50;5.8x42mm DBP87|34|3|52;12x70mm Flechette Buckshot|33|3|25;7.62x39mm PS|33|3|55;7.62x54mm T46M|33|3|77;9x39mm SP5|33|3|64;.45 AP|32|3|48;5.7x28mm L191|32|3|55;7.62x51mm BPZ|32|3|67;7.62x39mm T45M|31|3|60;9x19mm AP6.3|30|3|46;12x70mm GT Slug|27|2|201;7.62x39mm US|27|2|55;5.45x39mm PS|25|2|53;5.56x45mm FMJ Hunting|25|2|53;.44 LFNP|23|2|98;5.7x28mm SS197SR|22|2|62;7.62x25mm Pst|22|2|51;9x19mm Pst|20|2|50;.45 FMJ|19|1|54;12x70mm Dual Shell|19|1|86;7.62x25mm PT|19|1|55`
+ .split(";").map(r=>{const [full,pen,cls,dmg]=r.split("|");const m=full.match(/^(\S+)\s+(.*)$/);return {cal:m[1],name:m[2],pen:+pen,cls:+cls,dmg:+dmg}});
+const CLSCOL=["#3a3a3a","#4a4a4a","#5e5a52","#7a6a3a","#8a5a20","#a8321e","#c51d26","#e0232c"];
+let asort={k:"pen",d:-1};
+[...new Set(AM.map(a=>a.cal))].sort().forEach(c=>{const o=el("option",null,c);o.value=c;$("#acal").append(o)});
+function renderAmmo(){
+  const cal=$("#acal").value, mc=+$("#acls").value||0, tb=$("#atbl"); tb.replaceChildren();
+  AM.filter(a=>(!cal||a.cal===cal)&&a.cls>=mc).sort((a,b)=>{const x=a[asort.k],y=b[asort.k];return (typeof x==="string"?x.localeCompare(y):x-y)*asort.d})
+   .forEach(a=>{const tr=el("tr");tr.append(el("td",null,a.name),el("td","num",a.cal));const td=el("td");const b=el("span","cls",String(a.cls));b.style.background=CLSCOL[a.cls];td.append(b);tr.append(td,el("td","num",String(a.pen)),el("td","num",String(a.dmg)));tb.append(tr)});
+}
+document.querySelectorAll("#v-ammo th[data-sort]").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.sort;asort={k,d:asort.k===k?-asort.d:(k==="name"||k==="cal"?1:-1)};renderAmmo()}));
+["#acal","#acls"].forEach(s=>$(s).addEventListener("change",renderAmmo));
+function renderCalBest(){
+  const best={};AM.forEach(a=>{if(!best[a.cal]||a.pen>best[a.cal].pen)best[a.cal]=a});
+  Object.values(best).sort((a,b)=>b.pen-a.pen).forEach(a=>{const c=el("div","card");c.append(el("span","k",a.cal));c.append(el("h3",null,a.name));c.append(el("p","lead","Пробитие "+a.pen+" · урон "+a.dmg+" · броня до "+a.cls+" класса"));$("#calbest").append(c)});
+}
+
+renderTV(); renderSpawns(); renderSG(); renderAmmo(); renderCalBest(); route();
+</script>
+
+</body>
+</html>
