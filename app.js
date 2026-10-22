@@ -18,81 +18,78 @@ function route(){
 window.addEventListener("hashchange",route);
 
 /* ---------- карты ---------- */
-const MT={loot:{c:"#e8b04a",s:"$",n:"Ценный лут"},key:{c:"#5aa7e0",s:"К",n:"Ключ / запертая комната"},boss:{c:"#e0232c",s:"Б",n:"Босс"},exit:{c:"#58b46a",s:"↗",n:"Выход"},spawn:{c:"#cfc6c3",s:"С",n:"Спавн игроков"},danger:{c:"#ff8a3d",s:"!",n:"Опасно"}};
+const MT={loot:{c:"#e8b04a",s:"$",n:"Ценный лут"},key:{c:"#5aa7e0",s:"К",n:"Ключ / запертая комната"},boss:{c:"#e0232c",s:"Б",n:"Босс"},exit:{c:"#58b46a",s:"↗",n:"Выход"},spawn:{c:"#cfc6c3",s:"С",n:"Спавн игроков"},danger:{c:"#ff8a3d",s:"!",n:"Опасно"},zone:{c:"#efe7e5",s:"i",n:"Место"}};
 const filt={}; Object.keys(MT).forEach(k=>filt[k]=true);
-let cur=PK.MAPS[0], floor=0, vb={x:0,y:0,w:1000,h:700}, selEl=null;
-
+let cur=PK.MAPS[0], floor=0, vb={x:0,y:0,w:1,h:1}, selEl=null;
+const lay=()=>cur.layers[floor];
 function mapSel(){
   const box=$("#mapsel"); box.replaceChildren();
   PK.MAPS.forEach(m=>{const b=el("button","chip",m.name); b.setAttribute("role","tab"); b.setAttribute("aria-pressed",String(m===cur));
-    b.addEventListener("click",()=>{cur=m;floor=0;resetView();store.set("pk_map",m.id);renderMap()}); box.append(b)});
+    b.addEventListener("click",()=>{cur=m;floor=0;store.set("pk_map",m.id);renderMap()}); box.append(b)});
 }
 function legend(){
   const box=$("#legend"); box.replaceChildren();
   Object.entries(MT).forEach(([k,v])=>{const b=el("button","chip"); b.setAttribute("aria-pressed",String(filt[k]));
     const dot=el("span"); dot.textContent="● "; dot.style.color=v.c; b.append(dot,document.createTextNode(v.n));
-    b.addEventListener("click",()=>{filt[k]=!filt[k];renderMap()}); box.append(b)});
+    b.addEventListener("click",()=>{filt[k]=!filt[k];renderMap(true)}); box.append(b)});
 }
-function info(title,text,type,extra){
-  const b=$("#info"); b.replaceChildren(); const t=el("span","t",type?MT[type]?MT[type].n:type:"Зона"); if(type&&MT[type]) t.style.color=MT[type].c;
+function info(title,text,type,extra,go){
+  const b=$("#info"); b.replaceChildren(); const t=el("span","t",MT[type]?MT[type].n:"Подсказка"); if(MT[type]) t.style.color=MT[type].c;
   b.append(t, el("h3",null,title)); if(extra) b.append(el("span","tag",extra)); b.append(el("p","lead",text));
+  if(go!=null){const g=el("button","btn","Открыть: "+cur.layers[go].n); g.style.marginTop="10px"; g.addEventListener("click",()=>{floor=go;renderMap()}); b.append(g)}
 }
 function setVB(){ $("#mapsvg").setAttribute("viewBox",`${vb.x} ${vb.y} ${vb.w} ${vb.h}`) }
-function resetView(){ vb={x:0,y:0,w:1000,h:700}; setVB() }
-function zoom(f,cx,cy){ const nw=Math.min(1000,Math.max(200,vb.w*f)), nh=nw*0.7; if(cx==null){cx=vb.x+vb.w/2;cy=vb.y+vb.h/2}
+function resetView(){ const L=lay(); vb={x:0,y:0,w:L.w,h:L.h}; setVB() }
+function zoom(f,cx,cy){ const L=lay(); const nw=Math.min(L.w,Math.max(L.w/6,vb.w*f)), nh=nw*L.h/L.w; if(cx==null){cx=vb.x+vb.w/2;cy=vb.y+vb.h/2}
   vb.x=cx-(cx-vb.x)*nw/vb.w; vb.y=cy-(cy-vb.y)*nh/vb.h; vb.w=nw; vb.h=nh; clampVB(); setVB() }
-function clampVB(){ vb.x=Math.max(-100,Math.min(1100-vb.w,vb.x)); vb.y=Math.max(-70,Math.min(770-vb.h,vb.y)) }
-
-function renderMap(){
+function clampVB(){ const L=lay(); vb.x=Math.max(0,Math.min(L.w-vb.w,vb.x)); vb.y=Math.max(0,Math.min(L.h-vb.h,vb.y)) }
+function pin(svg,x,y,col,sym,label,r,act,ring){
+  const g=sv("g",{class:"mk",tabindex:0,role:"button","aria-label":label});
+  if(ring) g.append(sv("circle",{cx:x,cy:y,r:r+8,fill:"none",stroke:"#e0232c","stroke-width":3,"stroke-dasharray":"5 4"}));
+  g.append(sv("circle",{cx:x,cy:y,r,fill:col,stroke:"#0b0909","stroke-width":2.5}));
+  const tx=sv("text",{x,y:y+r*0.36,"text-anchor":"middle",fill:"#0b0909","font-size":r*1.05,"font-weight":"700","font-family":"PT Sans, sans-serif"}); tx.textContent=sym; g.append(tx);
+  const tt=sv("title",{}); tt.textContent=label; g.append(tt);
+  const run=()=>{ if(selEl) selEl.classList.remove("sel"); selEl=g; g.classList.add("sel"); act() };
+  g.addEventListener("click",e=>{e.stopPropagation();run()}); g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();run()}});
+  svg.append(g); return g;
+}
+function renderMap(keepView){
   mapSel(); legend();
   $("#mapTitle").textContent=cur.name+" ("+cur.en+")";
   $("#mapAbout").textContent=cur.about+"  Режим: "+cur.mode+" · рейд "+cur.time+" · "+cur.players+".";
   const fs=$("#floorsel"); fs.replaceChildren();
-  if(cur.floors) cur.floors.forEach((f,i)=>{const b=el("button","chip",f);b.setAttribute("aria-pressed",String(i===floor));b.addEventListener("click",()=>{floor=i;renderMap()});fs.append(b)});
-  const svg=$("#mapsvg"); svg.replaceChildren();
-  $("#mapbox").hidden=!!cur.nomap; $("#nomapZones").hidden=!cur.nomap;
-  if(cur.nomap){ const g=$("#nomapZones"); g.replaceChildren(); cur.zones.forEach(z=>{const c=el("div","card");c.append(el("span","k","Зона"),el("h3",null,z.n),el("p","lead",z.d));g.append(c)}); }
+  if(cur.layers.length>1) cur.layers.forEach((f,i)=>{const b=el("button","chip",f.n);b.setAttribute("aria-pressed",String(i===floor));b.addEventListener("click",()=>{floor=i;renderMap()});fs.append(b)});
+  const svg=$("#mapsvg"); svg.replaceChildren(); selEl=null;
+  const nomap=!cur.layers.length;
+  $("#mapbox").hidden=nomap; $("#nomapZones").hidden=!nomap;
+  if(nomap){ const g=$("#nomapZones"); g.replaceChildren(); cur.zones.forEach(z=>{const c=el("div","card");c.append(el("span","k","Зона"),el("h3",null,z.n),el("p","lead",z.d));g.append(c)}); }
   else {
-    const defs=sv("defs",{}); const pat=sv("pattern",{id:"grid",width:50,height:50,patternUnits:"userSpaceOnUse"});
-    pat.append(sv("path",{d:"M50 0 L0 0 0 50",fill:"none",stroke:"#231b1c","stroke-width":1})); defs.append(pat); svg.append(defs);
-    svg.append(sv("rect",{x:-100,y:-70,width:1200,height:840,fill:"#120e0f"}), sv("rect",{x:0,y:0,width:1000,height:700,fill:"url(#grid)",stroke:"#2e2426"}));
-    (cur.terrain||[]).forEach(t=>{
-      if(t.t==="road"){ svg.append(sv("path",{d:t.d,fill:"none",stroke:"#3a2f30","stroke-width":14,"stroke-linecap":"round"})); }
-      else if(t.t==="water"){ svg.append(sv("path",{d:t.d,fill:"#13212b",stroke:"#1f3646"})); }
-      else if(t.t==="hill"){ svg.append(sv("ellipse",{cx:t.cx,cy:t.cy,rx:t.rx,ry:t.ry,fill:"#1a1516",stroke:"#2b2223","stroke-dasharray":"6 6"})); }
-      if(t.l){ const p=t.t==="hill"?{x:t.cx,y:t.cy-t.ry+18}:null; if(p){const tx=sv("text",{x:p.x,y:p.y,"text-anchor":"middle",fill:"#6d605c","font-size":14,"font-family":"PT Sans, sans-serif"}); tx.textContent=t.l; svg.append(tx);} }
+    const L=lay(); $("#mapbox").style.aspectRatio=L.w+" / "+L.h;
+    if(!keepView) resetView(); else setVB();
+    svg.append(sv("rect",{x:0,y:0,width:L.w,height:L.h,fill:"#0d0b0b"}));
+    const im=sv("image",{href:L.img,x:0,y:0,width:L.w,height:L.h,preserveAspectRatio:"none"}); svg.append(im);
+    const k=Math.max(L.w,L.h)/1000, R=Math.round(12*k+3);
+    if(filt.zone) cur.zones.filter(z=>z.l===floor).forEach(z=>{
+      const x=z.x-L.ox, y=z.y-L.oy-(z.go!=null?0:Math.round(R*1.5));
+      pin(svg,x,y,z.go!=null?"#e0232c":"rgba(239,231,229,.92)",z.go!=null?"⤢":"i",z.n,Math.round(R*0.72),()=>info(z.n,z.d,"zone",null,z.go));
     });
-    cur.zones.filter(z=>(z.f||0)===floor).forEach(z=>{
-      const g=sv("g",{class:"mk",tabindex:0,role:"button","aria-label":z.n});
-      g.append(sv("rect",{x:z.x,y:z.y,width:z.w,height:z.h,rx:6,fill:"#1f1819",stroke:"#4a3a3c","stroke-width":2}));
-      const tx=sv("text",{x:z.x+z.w/2,y:z.y+20,"text-anchor":"middle",fill:"#cfc6c3","font-size":14,"font-family":"Russo One, sans-serif"}); tx.textContent=z.n; g.append(tx);
-      const act=()=>info(z.n+(z.en?" · "+z.en:""),z.d,null);
-      g.addEventListener("click",act); g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();act()}}); svg.append(g);
+    cur.markers.filter(m=>m.l===floor&&filt[m.t]).forEach(m=>{
+      const t=MT[m.t];
+      pin(svg,m.x-L.ox,m.y-L.oy,t.c,t.s,t.n+": "+m.n,R,()=>info(m.n,m.d,m.t,m.tier==="red"?"шанс на красное":m.tier==="gold"?"ценный лут":null),m.tier==="red");
     });
-    cur.markers.filter(m=>(m.f||0)===floor&&filt[m.t]).forEach(m=>{
-      const t=MT[m.t]; const g=sv("g",{class:"mk",tabindex:0,role:"button","aria-label":t.n+": "+m.n});
-      if(m.tier==="red") g.append(sv("circle",{cx:m.x,cy:m.y,r:22,fill:"none",stroke:"#e0232c","stroke-width":3,"stroke-dasharray":"4 3"}));
-      g.append(sv("circle",{cx:m.x,cy:m.y,r:15,fill:t.c,stroke:"#0b0909","stroke-width":2}));
-      const tx=sv("text",{x:m.x,y:m.y+5,"text-anchor":"middle",fill:"#0b0909","font-size":15,"font-weight":"700","font-family":"PT Sans, sans-serif"}); tx.textContent=t.s; g.append(tx);
-      const tt=sv("title",{}); tt.textContent=m.n; g.append(tt);
-      const act=()=>{ if(selEl) selEl.classList.remove("sel"); selEl=g; g.classList.add("sel"); info(m.n,m.d,m.t,m.tier==="red"?"шанс на красное":m.tier==="gold"?"ценный лут":null) };
-      g.addEventListener("click",e=>{e.stopPropagation();act()}); g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();act()}});
-      svg.append(g);
-    });
-    setVB();
   }
   const up=$("#unplaced"); up.replaceChildren();
   (cur.unplaced||[]).filter(u=>filt[u[0]]!==false).forEach(u=>{const d=el("div"); const b=el("b",null,u[1]); b.style.color=(MT[u[0]]||{}).c||"var(--fg)"; d.append(b,document.createTextNode(u[2])); up.append(d)});
-  if(!up.children.length) up.append(el("p","lead","Все известные точки уже на схеме."));
+  if(!up.children.length) up.append(el("p","lead","Все известные точки уже на карте."));
   const tips=$("#mapTips"); tips.replaceChildren(); cur.tactics.forEach(t=>tips.append(el("li",null,t)));
-  info("Выберите метку","Нажмите на метку или зону на схеме, чтобы прочитать, что там лежит и чем опасно.",null);
+  if(!keepView) info("Выберите метку","Нажмите на метку на карте, чтобы прочитать, что там лежит и чем опасно. Значки «i» — подписи мест, красная кнопка ⤢ открывает план здания. Колесо мыши или щипок — приближение.",null);
 }
 (function panzoom(){
   const svg=$("#mapsvg"); let drag=null; const pts=new Map(); let pinch=null;
-  const toSvg=(cx,cy)=>{const r=svg.getBoundingClientRect(); return {x:vb.x+(cx-r.left)/r.width*vb.w, y:vb.y+(cy-r.top)/r.height*vb.h, r}};
-  svg.addEventListener("wheel",e=>{e.preventDefault(); const p=toSvg(e.clientX,e.clientY); zoom(e.deltaY>0?1.15:0.87,p.x,p.y)},{passive:false});
+  const toSvg=(cx,cy)=>{const r=svg.getBoundingClientRect(); return {x:vb.x+(cx-r.left)/r.width*vb.w, y:vb.y+(cy-r.top)/r.height*vb.h}};
+  svg.addEventListener("wheel",e=>{if(!cur.layers.length)return; e.preventDefault(); const p=toSvg(e.clientX,e.clientY); zoom(e.deltaY>0?1.15:0.87,p.x,p.y)},{passive:false});
   svg.addEventListener("pointerdown",e=>{ if(e.target.closest&&e.target.closest(".mk")&&e.pointerType==="mouse") return;
-    pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); svg.setPointerCapture(e.pointerId);
+    pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); try{svg.setPointerCapture(e.pointerId)}catch(_){}
     if(pts.size===1){ drag={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y}; svg.classList.add("drag") }
     if(pts.size===2){ const [a,b]=[...pts.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y),w:vb.w}; drag=null } });
   svg.addEventListener("pointermove",e=>{ if(!pts.has(e.pointerId)) return; pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
